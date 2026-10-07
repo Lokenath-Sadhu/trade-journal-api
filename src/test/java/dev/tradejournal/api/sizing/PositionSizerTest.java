@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class PositionSizerTest {
-    private final PositionSizer sizer = new PositionSizer();
+    private final PositionSizer sizer = new PositionSizer(new SizingProperties(new BigDecimal("5")));
 
     private static SizingRequest req(String capital, String riskPct, String entry,
                                      String stop, String brokerage) {

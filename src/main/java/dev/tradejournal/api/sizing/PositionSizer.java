@@ -1,14 +1,21 @@
 package dev.tradejournal.api.sizing;
 
+import org.springframework.stereotype.Component;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Optional;
 
+
+@Component
 public final class PositionSizer {
-    /**
-     * Sanity cap so a typo like 50 (instead of 0.5) is rejected. Change it to your own rule.
-     */
-    static final BigDecimal MAX_RISK_PERCENT = new BigDecimal("5");
+
+    private final BigDecimal maxRiskPercent;
+
+    public PositionSizer(SizingProperties properties) {
+        System.out.println("PositionSizer created");
+        this.maxRiskPercent = properties.maxRiskPercent();
+    }
     private static final BigDecimal HUNDRED = new BigDecimal("100");
 
     public SizingResult size(SizingRequest r) {
@@ -49,15 +56,15 @@ public final class PositionSizer {
         return  new SizingResult.Sized(qty,riskAmount,positionValue,maxLoss,capped);
     }
 
-    private static Optional<SizingResult.Rejected> validate(SizingRequest r) {
+    private  Optional<SizingResult.Rejected> validate(SizingRequest r) {
         if (r.capital().signum() <= 0) {
             return Optional.of(rejected(SizingResult.Reason.INVALID_INPUT, "capital must be greater than 0"));
         }
         if (r.riskPercent().signum() <= 0) {
             return Optional.of(rejected(SizingResult.Reason.INVALID_INPUT, "riskPercent must be greater than 0"));
         }
-        if (r.riskPercent().compareTo(MAX_RISK_PERCENT) > 0) {
-            return Optional.of(rejected(SizingResult.Reason.RISK_TOO_HIGH, "riskPercent is above the " + MAX_RISK_PERCENT + "% limit"));
+        if (r.riskPercent().compareTo(maxRiskPercent) > 0) {
+            return Optional.of(rejected(SizingResult.Reason.RISK_TOO_HIGH, "riskPercent is above the " + maxRiskPercent + "% limit"));
         }
         if (r.entry().signum() <= 0 || r.stop().signum() <= 0) {
             return Optional.of(rejected(SizingResult.Reason.INVALID_INPUT, "entry and stop must be greater than 0"));
